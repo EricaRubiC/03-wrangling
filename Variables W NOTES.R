@@ -60,28 +60,8 @@ rm(df2, df3) #get rid of objects in Environment
       .keep = 'unused' #We have lots of variables, lets get rid of everything BUT the ones we created                            here (3 variables) you can do .keep = 'none' BUT also unused, used, all.
       
     )
-    
 
-
-
-
-
-
-
-
-
-
-
-# Place the columns
-  df2 <- 
-    df %>%
-    mutate(
-      r_id = row_number(),
-      int_year = hv007,
-      .before = 1 # use column number or name; also .after
-    )
-  
-# Decide what to keep
+# Decide what to keep ***?? Question: What does this explain
   df2 <-
     df %>%
     mutate(
@@ -91,19 +71,27 @@ rm(df2, df3) #get rid of objects in Environment
     )
 
   
-# NAs and Strings ----------------
+# NAs and Strings ---------------- 
 # unwanted strings
-  df2 <-
+
+#if there is any character variable in a column it reads all values as characters so we must get rid of them
+#water_mins shows how long it takes the respondent to walk to their water source but its has values that are read as characters such as "on premises" and "don't know" so we have to decide whether we keep them or change them. Now we will change them to numerical values.
+  
+   df2 <-
     df %>%
     mutate(
-      watEx1 = as.numeric(water_mins), # changes strings to NA
+      wat1 = as.numeric(water_mins), # changes strings to NA
       waterFetchMins = case_when(
         water_mins == 'on premises' ~ 0,
-        water_mins == '999' ~ NA, 
-        TRUE ~ as.numeric(water_mins)
+        water_mins %in% c('999', "don't know") ~ NA, 
+        TRUE ~ as.numeric(water_mins) 
       ),
       .keep = 'used'
-    )  # review the Warning messages; check: summary(df2$waterFetchMins)
+    )  # review the Warning messages; check: 
+  
+  summary(df2$water_mins)
+
+#****JUMPED TO FACTOR AND LABELS
 
 # Combine or split strings
   df2 <-
@@ -126,8 +114,19 @@ rm(df2, df3) #get rid of objects in Environment
       .keep = 'used'
     )
   
+  
+  
+  
+#*****CONTINUED WORK HERE
+
+
 # Factors and labels -------------  
-# Relevel
+
+  #Not just a character but a factor, where the order appeared matters.
+count(df, hh_income)
+  
+  
+  # Relevel (Change order)
   df2 <-
     df %>%
     mutate(
@@ -137,7 +136,30 @@ rm(df2, df3) #get rid of objects in Environment
       )
     )
   
+  
+#OR WE CAN ALSO.....
+  
 # create ordered categories
+  
+  df2 <-
+    df %>%
+    mutate(age_grp = case_when(
+      age <= 9 ~ 'youngest',
+      age %in% 10:12 - 'middle',
+      age >= 13 ~ 'oldest'
+    ),
+    age_fctr = fctr(
+      age <= 9 ~ 'youngest',
+      age %in% 10:12 - 'middle',
+      age >= 13 ~ 'oldest'
+    )
+             )
+  
+count(df2, age_fctr) #***Question: Please help fix the code above to show imapct of factor
+  
+#factor can allow to use as a numeric grouping! And we can find mean
+  
+  
   df2 <-
     df %>%
     mutate(
@@ -149,13 +171,20 @@ rm(df2, df3) #get rid of objects in Environment
       .keep = 'used'
     )
   
+  #REPEAT FUNCTIONS-----------------
+  
 # Repeat across columns ----------  
 # Mutate across
+  
+   
   df2 <-
     df %>%
     mutate(
       across(where(is.character), ~na_if(.x, '9'))
     )
+  
+  
+## SKIPPED THIS PART BELOW ***
   
 # Grouping -----------------------
 # Aggregate: group and summarize
